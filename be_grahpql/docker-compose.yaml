@@ -5,4 +5,18 @@ services:
       context: .
       dockerfile: .Dockerfile
     ports:
-      - 37111:4000
+      - "37111:4000"
+    environment:
+      - MONGO_URI=mongodb://admin:secret@mongodb:27017
+      - DB_NAME=invoicerdb
+    depends_on:
+      - mongodb
+
+  mongodb:
+    image: mongo:6
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=secret
