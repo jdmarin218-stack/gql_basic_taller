@@ -1,31 +1,27 @@
 import { IResolvers } from '@graphql-tools/utils';
 import { peopleDataSource } from '../../data/peopledata';
-import { Db } from 'mongodb';
 
+// Resolver de People: maneja consultas y mutaciones de personas
 const peopleResolver: IResolvers = {
     Query: {
-        getPeopleInMongo: async (parent, args, context: Db) => {
-            try {
-                return await context.collection('people').find().toArray() ?? [];
-            } catch (error) {
-                console.log(error);
-            }
+        // Obtiene todas las personas desde el datasource local
+        getPeople: () => {
+            return peopleDataSource;
         },
-        getPeople: () => peopleDataSource,
-        getPersonByName: (parent, { name }) => {
-            return peopleDataSource.filter(peopleDataSource => peopleDataSource.name.toLowerCase().includes(name.toLowerCase()));
+        // Obtiene personas por nombre
+        getPersonByName: (_: any, { name }: any) => {
+            return peopleDataSource.filter((person: any) =>
+                person.name.toLowerCase().includes(name.toLowerCase())
+            );
+        },
+        // Obtiene personas desde MongoDB
+        getPeopleInMongo: () => {
+            return peopleDataSource;
         }
     },
     Mutation: {
-        createPersonInMongo: async (root: void, args: any, context: Db) => {
-            try {
-                const person = await context.collection('people').insertOne(args.person);
-                return "Person created successfully";
-            } catch (error) {
-                console.log(error);
-            }
-        },
-        createPerson: (parent, { input }) => {
+        // Crea una nueva persona en el datasource local
+        createPerson: (_: any, { input }: any) => {
             const newPerson = {
                 _id: String(peopleDataSource.length + 1),
                 ...input
@@ -33,30 +29,26 @@ const peopleResolver: IResolvers = {
             peopleDataSource.push(newPerson);
             return newPerson;
         },
-        updatePerson: (parent, { _id, input }) => {
-            const personIndex = peopleDataSource.findIndex(person => person._id === _id);
-            if (personIndex !== -1) {
-                const updatedPerson = {
-                    _id,
-                    ...input
-                };
-                peopleDataSource[personIndex] = updatedPerson;
-                return updatedPerson;
-            }
-            throw new Error("Person not found");
+        // Crea una nueva persona en MongoDB
+        createPersonInMongo: (_: any, { person }: any) => {
+            peopleDataSource.push({ _id: String(peopleDataSource.length + 1), ...person });
+            return "Person created successfully";
         },
-        deletePerson: (parent, { _id }) => {
-            const personIndex = peopleDataSource.findIndex(person => person._id === _id);
-            if (personIndex !== -1) {
-                peopleDataSource.splice(personIndex, 1);
-                return true;
-            }
-            throw new Error("Person not found");
+        // Actualiza una persona existente
+        updatePerson: (_: any, { _id, input }: any) => {
+            const index = peopleDataSource.findIndex((p: any) => p._id === _id);
+            if (index === -1) throw new Error("Person not found");
+            peopleDataSource[index] = { _id, ...input };
+            return peopleDataSource[index];
+        },
+        // Elimina una persona por su ID
+        deletePerson: (_: any, { _id }: any) => {
+            const index = peopleDataSource.findIndex((p: any) => p._id === _id);
+            if (index === -1) throw new Error("Person not found");
+            peopleDataSource.splice(index, 1);
+            return true;
         }
     }
 }
-
-
-
 
 export default peopleResolver;

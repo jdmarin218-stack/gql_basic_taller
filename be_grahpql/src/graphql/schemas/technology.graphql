@@ -1,0 +1,24 @@
+type Technology {
+    _id: ID!
+    name: String!
+    category: String!
+}
+
+input TechnologyInput {
+    name: String!
+    category: String!
+}
+
+type Query {
+    getTechnologies: [Technology]
+}
+
+type Mutation {
+    createTechnology(technology: TechnologyInput!): String!
+    updateTechnology(_id: ID, technology: EditTechnologyInput!): String!
+}
+
+input EditTechnologyInput {
+    name: String
+    category: String
+}
